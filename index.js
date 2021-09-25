@@ -43,6 +43,16 @@ app.get('/api/persons/:id', (request, response) => {
     response.status(404).end()
   }
 })
+app.delete('/api/persons/:id', (request, response) => {
+  const updatedPersons = persons.filter(person => person.id.toString() !== request.params.id.toString())
+  const found = updatedPersons.length < persons.length
+  if (found) {
+    persons = updatedPersons
+    response.json(persons)
+  } else {
+    response.status(204).end()
+  }
+})
 
 const PORT = 3001
 app.listen(PORT, () => {
