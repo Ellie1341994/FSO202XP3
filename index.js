@@ -40,12 +40,16 @@ app.post('/api/persons', (request, response) => {
   const person = request.body;
   console.log(request.body)
   if(person?.name && person?.number){
+    const isNameUnique = persons.every(currentPerson => currentPerson.name !== person.name)
+    if( !isNameUnique ){
+      return response.status(400).json({error: "Name must be unique"})
+    } 
     person.id = Math.floor( Math.random() * 1000000)
     persons.push(person);
     response.json(person)
   }
   else {
-    response.status(400).end()
+    response.status(400).json({error: "person's name or number missing"})
   }
 
 })
