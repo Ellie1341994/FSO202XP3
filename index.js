@@ -1,5 +1,6 @@
 const express = require('express')
 const app = express()
+app.use(express.json())
 
 let persons = [
   {
@@ -34,6 +35,19 @@ app.get('/info', (request, response) => {
 
 app.get('/api/persons', (request, response) => {
   response.json(persons)
+})
+app.post('/api/persons', (request, response) => {
+  const person = request.body;
+  console.log(request.body)
+  if(person?.name && person?.number){
+    person.id = Math.floor( Math.random() * 1000000)
+    persons.push(person);
+    response.json(person)
+  }
+  else {
+    response.status(400).end()
+  }
+
 })
 app.get('/api/persons/:id', (request, response) => {
   const person = persons.find(person => person.id == request.params.id)
