@@ -1,8 +1,9 @@
 const express = require('express')
+const logger = require('./logger')
 const app = express()
 app.use(express.json())
-
-let persons = [
+app.use(logger)
+let phonebookEntries = [
   {
     "id": 1,
     "name": "Arto Hellas",
@@ -30,22 +31,22 @@ app.get('/', (request, response) => {
 })
 app.get('/info', (request, response) => {
   const date = new Date().toString();
-  response.send(`<p>Phonebook has info for ${persons.length} people</p><p>${date}</p>`)
+  response.send(`<p>Phonebook has info for ${phonebookEntries.length} people</p><p>${date}</p>`)
 })
 
 app.get('/api/persons', (request, response) => {
-  response.json(persons)
+  response.json(phonebookEntries)
 })
 app.post('/api/persons', (request, response) => {
   const person = request.body;
   console.log(request.body)
   if(person?.name && person?.number){
-    const isNameUnique = persons.every(currentPerson => currentPerson.name !== person.name)
+    const isNameUnique = phonebookEntries.every(currentPerson => currentPerson.name !== person.name)
     if( !isNameUnique ){
       return response.status(400).json({error: "Name must be unique"})
     } 
     person.id = Math.floor( Math.random() * 1000000)
-    persons.push(person);
+    phonebookEntries.push(person);
     response.json(person)
   }
   else {
@@ -54,7 +55,7 @@ app.post('/api/persons', (request, response) => {
 
 })
 app.get('/api/persons/:id', (request, response) => {
-  const person = persons.find(person => person.id == request.params.id)
+  const person = phonebookEntries.find(person => person.id == request.params.id)
   if (person) {
     response.json(person)
   } else {
@@ -62,11 +63,11 @@ app.get('/api/persons/:id', (request, response) => {
   }
 })
 app.delete('/api/persons/:id', (request, response) => {
-  const updatedPersons = persons.filter(person => person.id.toString() !== request.params.id.toString())
-  const found = updatedPersons.length < persons.length
+  const updatedPersons = phonebookEntries.filter(person => person.id.toString() !== request.params.id.toString())
+  const found = updatedPersons.length < phonebookEntries.length
   if (found) {
-    persons = updatedPersons
-    response.json(persons)
+    phonebookEntries = updatedPersons
+    response.json(phonebookEntries)
   } else {
     response.status(204).end()
   }
