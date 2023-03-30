@@ -23,7 +23,7 @@ app.get('/api/persons', (request, response) => {
     response.json(phonebookEntries)
   })
 })
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
   const { name, number } = request.body;
   if (name && number) {
     PhonebookEntry.findOne({ name }).then(foundPhonebookEntry => {
@@ -32,11 +32,11 @@ app.post('/api/persons', (request, response) => {
       if (nameUnique) {
         newPhonebookEntry.save().then(savedPhonebookEntry => {
           return response.json(savedPhonebookEntry)
-        })
+        }).catch(error => next(error))
       } else {
         return response.status(400).json({ error: "Name must be unique" })
       }
-    })
+    }).catch(error => next(error))
   }
   else {
     return response.status(400).json({ error: "Person's name or number missing" })
@@ -73,6 +73,8 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' })
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
   }
 
   next(error)
