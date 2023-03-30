@@ -3,6 +3,7 @@ const express = require('express')
 const logger = require('./logger')
 const cors = require('cors')
 const PhonebookEntry = require('./models/phonebookEntry')
+const { default: mongoose } = require('mongoose')
 const app = express()
 
 app.use(cors())
@@ -14,8 +15,9 @@ app.get('/', (request, response) => {
   response.redirect('/info')
 })
 app.get('/info', (request, response) => {
-  const date = new Date().toString();
-  response.send(`<p>Phonebook has info for ${phonebookEntries.length} people</p><p>${date}</p>`)
+  PhonebookEntry.estimatedDocumentCount().then(count => {
+    response.send(`<p>Phonebook has info for ${count} people</p><p>${new Date().toString()}</p>`)
+  })
 })
 
 app.get('/api/persons', (request, response) => {
@@ -24,19 +26,23 @@ app.get('/api/persons', (request, response) => {
   })
 })
 app.post('/api/persons', (request, response) => {
-  const person = request.body;
-  console.log(request.body)
-  if(person?.name && person?.number){
-    const isNameUnique = phonebookEntries.every(currentPerson => currentPerson.name !== person.name)
-    if( !isNameUnique ){
-      return response.status(400).json({error: "Name must be unique"})
-    } 
-    person.id = Math.floor( Math.random() * 1000000)
-    phonebookEntries.push(person);
-    response.json(person)
+  const { name, number } = request.body;
+  if (name && number) {
+    PhonebookEntry.find({ name }).then(result => {
+      console.log(`result is ${JSON.stringify(result)} length is: ${result.length}`)
+      const nameUnique = result?.length === 0
+      if (nameUnique) {
+        const ne = new PhonebookEntry({ name, number })
+        ne.save().then(savedPhonebookEntry => {
+          return response.json(savedPhonebookEntry)
+        })
+      } else {
+        return response.status(400).json({ error: "Name must be unique" })
+      }
+    })
   }
   else {
-    response.status(400).json({error: "person's name or number missing"})
+    return response.status(400).json({ error: "Person's name or number missing" })
   }
 
 })
