@@ -3,14 +3,12 @@ const express = require('express')
 const logger = require('./logger')
 const cors = require('cors')
 const PhonebookEntry = require('./models/phonebookEntry')
-const { default: mongoose } = require('mongoose')
 const app = express()
 
 app.use(cors())
 app.use(express.json())
 app.use(logger)
 app.use(express.static('build'))
-
 app.get('/', (request, response) => {
   response.redirect('/info')
 })
@@ -46,26 +44,37 @@ app.post('/api/persons', (request, response) => {
   }
 
 })
-app.get('/api/persons/:id', (request, response) => {
-  const person = phonebookEntries.find(person => person.id == request.params.id)
-  if (person) {
-    response.json(person)
-  } else {
-    response.status(404).end()
-  }
+app.get('/api/persons/:id', (request, response, next) => {
+  PhonebookEntry.findById(request.params.id).then(entry => {
+    entry ?
+      response.json(entry) :
+      response.status(404).send(`Resource ${id} not found`);
+  }).catch(error => next(error))
+
 })
-app.delete('/api/persons/:id', (request, response) => {
-  const updatedPersons = phonebookEntries.filter(person => person.id.toString() !== request.params.id.toString())
-  const found = updatedPersons.length < phonebookEntries.length
-  if (found) {
-    phonebookEntries = updatedPersons
-    response.json(phonebookEntries)
-  } else {
-    response.status(204).end()
+app.delete('/api/persons/:id', (request, response, next) => {
+  PhonebookEntry.findByIdAndDelete(request.params.id).then(deletedEntry => {
+    console.log(`deletedEntry is ${deletedEntry}`);
+    deletedEntry ?
+      response.json(deletedEntry) :
+      response.status(404).send(`Resource ${id} not found`);
   }
+  ).catch(error => next(error))
 })
 
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  }
+
+  next(error)
+}
+// errorHandler has to be the last loaded middleware.
+app.use(errorHandler)
 const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
+
