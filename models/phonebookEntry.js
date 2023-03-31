@@ -13,7 +13,14 @@ mongoose.connect(url).then(result => {
 
 const entrySchema = new mongoose.Schema({
   name: { type: String, minLength: 3, required: true },
-  number: { type: String, minLength: 1, required: true },
+  number: {
+    type: String, minLength: 8,
+    validate: {
+      validator: (value) => /^\d{2}-\d{6}|\d{3}-?\d{5}$/.test(value),
+      message: props => `${props.value} is not a valid phone number!`
+    },
+    required: true
+  },
 })
 entrySchema.set('toJSON', {
   transform: (document, returnedObject) => {
