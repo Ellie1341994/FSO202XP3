@@ -11,21 +11,30 @@ module.exports = {
     'ecmaVersion': 'latest',
   },
   'rules': {
-    "indent": [
-      "error",
-      2
+    'eqeqeq': 'error',
+    'no-trailing-spaces': 'error',
+    'no-console': 0,
+    'object-curly-spacing': [
+      'error', 'always',
+    ],
+    'arrow-spacing': [
+      'error', { 'before': true, 'after': true },
+    ],
+    'indent': [
+      'error',
+      2,
     ],
     'linebreak-style': [
       'error',
-      'unix'
+      'unix',
     ],
     'quotes': [
       'error',
-      'single'
+      'single',
     ],
     'semi': [
       'error',
-      'never'
-    ]
+      'never',
+    ],
   },
-};
+}
